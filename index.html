@@ -18,7 +18,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
 	<script>
+    //
+	// This clientIds written in configuration file of identity service
+	// The service has redirectUrl callback configured for each client id
+    //
+	// For client_id == 129
+	// http://localhost/social_oauth_callback.html is configured
+	//
+	// For client_id == 258
+	// http://eldarko.github.io/klab-socapi-demo/social_oauth_callback.html is configured
+	//
+	
 	var clientId = 129
+	
+    if(window.location.hostname.indexOf("eldarko.github.io") != -1)
+      clientId = 258
 	
 	var token = social.getUriHashParam('access_token')
 	var state = social.getUriHashParam('state')
