@@ -2,6 +2,8 @@
 <html>
 <head></head>
 <body>
-<script>window.location = '/' + window.location.hash</script>
+<script>
+	window.location = window.location.toString().replace('social_oauth_callback.html', 'index.html')
+</script>
 </body>
 </html>
