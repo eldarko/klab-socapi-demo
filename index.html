@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
   <head>
+  <!-- https://developers.google.com/accounts/docs/OAuth2UserAgent -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>KLab Social API Demo by Eldar Kononov</title>
@@ -8,47 +9,52 @@
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="javascripts/main.js"></script>
+    
+    <script src="https://ws.socialization.kaspersky-labs.com/js/klabsocapi.js"></script>
+
     <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-    <script src="https://ws.socialization.kaspersky-labs.com/js/oauthapi.js"></script>
 	<script>
-
-	var realm   = window.location.protocol + '//' + window.location.host
-	var context = window.location.pathname
+	var clientId = 129
 	
-	function onSuccess(profile) {
-		console.log('Success')
+	var token = social.getUriHashParam('access_token')
+	var state = social.getUriHashParam('state')
+	var error = social.getUriHashParam('error')
 
-		$('#private').text( profile['Private'] )
+	function getProfile()
+	{
+		if(!token)
+			window.location = social.createAuthUrl(clientId, 'get_profile')
 
-		$('#userinfo').show()
+		var callback = function(response){
+			console.log(response)
+
+			$('#email').text(response.Profile.Email)
+			$('#userId').text(response.Profile.UserId)
+		}
+		var errback = function(reason){
+			if(reason == 'Unauthorized')
+				window.location = social.createAuthUrl(clientId, 'get_profile')
+
+			console.log(reason)
+		}
+		social.getProfile(token, callback, errback)
 	}
-
-	function onNotAuth(authUrl) {
-		window.location = authUrl + '?realm=' + realm + '&context=' + context + '&contextdata=get_profile'
-	}
-
-	function onFailure(code, reason) {
-		console.log('onFailure: ' + code + ' ' + reason)
-	}
-
-	function getProfile() {
-		social.getProfile(realm, onSuccess, onNotAuth, onFailure)
-	}
-
-	// If contextdata param is set this is redirect from authentication page
-	// Redirect TO authentication page was initiated by pressing "Get profile" button
-	// so let's proceed with that work now
-	if(window.location.search.indexOf('contextdata=get_profile') != -1)
-		$(getProfile)
 
 	$(function(){
+
 		$('#userinfo').hide()
-	})
 	
+		if(token && state == 'get_profile')
+			getProfile();
+
+		if(error)
+			$('#errorBlock').text(error)
+	})
+
 	</script>
   </head>
   <body>
@@ -77,6 +83,12 @@
         <ul></ul>
       </nav>
       <section>
+      <div>
+        UserId: <span id="userId"></span>
+      </div>
+      <div>
+        Email: <span id="email"></span>
+      </div>
       <div id="userinfo">
         <h3>User private info</h3>
 
@@ -139,3 +151,4 @@ $ git checkout gh-pages
 
   </body>
 </html>
+<!-- kate: space-indent on; indent-width 2; -->
