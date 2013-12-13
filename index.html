@@ -34,39 +34,80 @@
     if(window.location.hostname.indexOf("eldarko.github.io") != -1)
       clientId = 258
 	
-	var token = social.getUriHashParam('access_token')
-	var state = social.getUriHashParam('state')
-	var error = social.getUriHashParam('error')
+    function resetAll()
+    {
+      $('#errorBlock').hide()
+      $('#userinfo').hide()
+    }
+	
+    function showUser(profile)
+    {
+      resetAll()
+      $('#userinfo').show()
+      $('#email').text(profile.Email)
+      $('#userId').text(profile.UserId)
+    }
 
+    function showError(reason)
+    {
+      resetAll()
+      $('#errorBlock').text(reason).show()
+    }
+
+    function authorizeAndGetProfile()
+    {
+      var callback = function(){
+        console.log('Received token: ' + ksocapi.getToken())
+        getProfile()
+      }
+      var errback = function(error){
+        console.log(error)
+        if(error == 'WindowBlocked') // browser blocks window popup
+          ksocapi.loginWithRedirect(clientId, 'get_profile')
+        else
+          showError(error)
+      }
+    
+      ksocapi.login(clientId, callback, errback)
+    }
+	
 	function getProfile()
 	{
-		if(!token)
-			window.location = social.createAuthUrl(clientId, 'get_profile')
-
-		var callback = function(response){
-			console.log(response)
-
-			$('#email').text(response.Profile.Email)
-			$('#userId').text(response.Profile.UserId)
-		}
-		var errback = function(reason){
-			if(reason == 'Unauthorized')
-				window.location = social.createAuthUrl(clientId, 'get_profile')
-
-			console.log(reason)
-		}
-		social.getProfile(token, callback, errback)
+      var callback = function(response)
+      {
+          showUser(response.Profile)
+      }
+      var errback = function(reason)
+      {
+          console.log('getProfile error: ' + reason)
+          
+          if(reason == 'Unauthorized')
+            authorizeAndGetProfile()
+          else
+            showError(reason)
+      }
+      
+      ksocapi.getProfile(callback, errback)
 	}
 
 	$(function(){
+      resetAll()
 
-		$('#userinfo').hide()
-	
-		if(token && state == 'get_profile')
-			getProfile();
+      // access_token/state/error parameters could appear when browser
+      // blocks window popups and redirect-based version was used to login
+      
+      var token = ksocapi.getUriHashParam('access_token')
+      var state = ksocapi.getUriHashParam('state')
+      var error = ksocapi.getUriHashParam('error')
 
-		if(error)
-			$('#errorBlock').text(error)
+      if(token)
+        ksocapi.setToken(token)
+
+      if(state == 'get_profile')
+        getProfile();
+
+      if(error)
+        showError(error)
 	})
 
 	</script>
@@ -81,15 +122,6 @@
       <div id="banner">
         <span id="logo"></span>
         <a href="javascript:getProfile()" class="button fork"><strong>Load profile</strong></a>
-        <!--
-        <div class="downloads">
-          <span>Downloads:</span>
-          <ul>
-            <li><a href="https://github.com/eldarko/klab-socapi-demo/zipball/master" class="button">ZIP</a></li>
-            <li><a href="https://github.com/eldarko/klab-socapi-demo/tarball/master" class="button">TAR</a></li>
-          </ul>
-        </div>
-        -->
       </div><!-- end banner -->
 
     <div class="wrapper">
@@ -97,22 +129,16 @@
         <ul></ul>
       </nav>
       <section>
-      <div>
-        UserId: <span id="userId"></span>
-      </div>
-      <div>
-        Email: <span id="email"></span>
+      <div id="errorBlock" style="color: red">
       </div>
       <div id="userinfo">
-        <h3>User private info</h3>
-
-Private part of user's info is encrypted with file <code>private-pk.pem</code>
-<p>Contact Kaspersky Socialization Team developers to receive the key
-and then use the following shell command to decrypt the private data.</p>
-
-<pre><code>$ echo '<span id="private"></span>' | base64 -d | openssl rsautl -decrypt -inkey private-pk.pem</code></pre>
-<p>In production the 3d party system should provide its public key which will be linked with the "realm".</p>
-     </div>
+        <div>
+          UserId: <span id="userId"></span>
+        </div>
+        <div>
+          Email: <span id="email"></span>
+        </div>
+      </div>
 
   
 <!--

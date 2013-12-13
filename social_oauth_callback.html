@@ -1,9 +1,11 @@
 <!doctype html>
 <html>
-<head></head>
+<head>
+    <script src="https://ws.socialization.kaspersky-labs.com/js/klabsocapi.js"></script>
+</head>
 <body>
 <script>
-	window.location = window.location.toString().replace('social_oauth_callback.html', 'index.html')
+	ksocapi.defaultOAuthCallbackHandler()
 </script>
 </body>
 </html>
