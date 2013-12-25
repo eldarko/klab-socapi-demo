@@ -44,8 +44,8 @@
     {
       resetAll()
       $('#userinfo').show()
-      $('#email').text(profile.Email)
-      $('#userId').text(profile.UserId)
+      $('#email').text(profile.email)
+      $('#userId').text(profile.uid)
     }
 
     function showError(reason)
@@ -75,7 +75,8 @@
 	{
       var callback = function(response)
       {
-          showUser(response.Profile)
+        console.log(response.Profile)
+        showUser(response.Profile)
       }
       var errback = function(reason)
       {
